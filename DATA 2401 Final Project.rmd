@@ -1,0 +1,24 @@
+---
+title: "DATA 2401 Final Project"
+author: "MarvinB"
+date: "2023-11-06"
+output: html_document
+---
+
+
+#DATA
+from
+https://www.kaggle.com/datasets/wumanandpat/irs-migration-data-1992-to-2020
+by Patrick
+
+```{r}
+library(tidyverse)
+IRSmigDATA <- read.csv("irs_SOI_state_migraion_data.csv")
+```
+
+
+```{r}
+
+head(irs_SOI_state_migraion_data)
+irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "TX")
+

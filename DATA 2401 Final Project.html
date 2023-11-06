@@ -1,0 +1,27 @@
+---
+title: "Final Project"
+author: "MarvinB"
+date: "2023-11-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#DATA
+from
+https://www.kaggle.com/datasets/wumanandpat/irs-migration-data-1992-to-2020
+by Patrick O'Connor
+
+
+```{r}
+
+```
+
+
+```{r}
+library(tidyverse)
+head(irs_SOI_state_migraion_data)
+irs_SOI_state_migraion_data %>% filter(V3 == "TX")
+```
+
