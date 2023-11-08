@@ -16,7 +16,9 @@ by Patrick O'Connor
 ```{r}
 library(tidyverse)
 library(ggplot2)
-irs_SOI_state_migraion_data <- read.csv("~/final-project-fall-2023-marvinb/irs_SOI_state_migraion_data.csv")
+
+irs_SOI_state_migraion_data <- read.csv("irs_SOI_state_migraion_data.csv")
+
 head(irs_SOI_state_migraion_data)
 ```
 
@@ -28,7 +30,31 @@ head(TXdata)
 CATXdata <- irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "CA" & Y2_STATE_ABBR == "TX")
 head(CATXdata)
 
+```
+
+# total number of individuals migrating to TX
+```{r}
+
+CATXdata %>% select(Y1, NUM_EXEMPTIONS, AGI)
 ggplot(TXdata %>% group_by(Y1) %>% summarise(INDIVIDUALS = sum(NUM_EXEMPTIONS)), aes(Y1, y = INDIVIDUALS)) + geom_line() + geom_point() 
 
+
+
+ggplot(TXdata %>% group_by(Y1) %>% summarise(INDIVIDUALS = sum(NUM_EXEMPTIONS)), aes(Y1, y = INDIVIDUALS)) + geom_area()
+
+```
+
+```{r}
+TXvTotalData <- TXdata %>% group_by(Y1) %>% summarise (TotalMigration = sum(NUM_EXEMPTIONS))
+p <- TXdata %>% filter(Y1_STATE_NAME == "CALIFORNIA")
+TXvTotalData <- right_join(TXvTotalData,p, join_by(Y1))
+TXvTotalData
+
+```
+
+
+# California to Texas Data
+
+```{r}
 ggplot(TXdata, aes(Y1, NUM_EXEMPTIONS, color = Y1_STATE_NAME == "CALIFORNIA")) + geom_point() + geom_line()
 ```
