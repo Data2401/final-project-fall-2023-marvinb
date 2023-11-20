@@ -58,8 +58,41 @@ AHIdata <- CATXdata %>% select(Y1, Average_Household_Income)
 head(AHIdata)
 
 ggplot(AHIdata, aes(x = Y1, y = Average_Household_Income)) + geom_col()
+#write.csv(AHIdata, "AHIandCPIdata.csv")
 
-#ggplot(CATXdata, aes(x= Y1, y = Average_Household_Income)) + geom_point() + geom_line()
+#CPi data listed form
+CPI = c(140.317, 144.458, 148.225, 152.383, 156.850, 160.517, 163.008, 166.575, 172.200, 177.067, 179.875, 183.958, 188.883, 195.292, 201.592, 207.342, 215.303, 214.537, 218.056, 224.939, 229.594, 232.957, 236.736, 237.017, 240.011, 245.120, 251.107, 255.657, 258.811 )
+
+#add CPI to AHIdata
+AHIdata <- cbind(AHIdata, CPI) 
+
+
+#inflation rate in 2020 compared to 2022 = 
+# [(CPI for 2022 - CPI for 2020 ) / (CPI for 2020)] x 100%
+
+AHIdata <- AHIdata %>% mutate(AHIdata, inflation2022correction = ((292.655 - CPI)/CPI))
+
+
+#income in 2020 (compared to 2022 dollars) = 
+#(income in 2020) / (inflation rate in 2020 compared to 2022)
+
+AHIdata <- AHIdata %>% mutate(Adjusted_in_2022dollars = Average_Household_Income*(1+inflation2022correction))
+
+#Median Household Income (2022 dollars, I believe!) from https://fred.stlouisfed.org/series/MEHOINUSCAA646N
+MHI = c(34900, 34070, 35330, 37010, 38810, 39690, 40930, 43630, 46820, 47260, 47440, 49300, 49220, 51760, 55320, 55730, 57010, 56130, 54280, 53370, 57020, 60790, 60490, 63640, 66640, 70040, 70490, 78110, 77650)
+
+AHIdata <- cbind(AHIdata, MHI)
+
+ggplot(AHIdata, aes(x = Y1, y = Adjusted_in_2022dollars)) + geom_line(aes(y=Adjusted_in_2022dollars)) + geom_line(aes(y=MHI))
+
+#plot of household income data adjusted for inflation (2022 dollars)
+ggplot(AHIdata, aes(x = Y1, y = Adjusted_in_2022dollars))  + geom_col(aes(y = Adjusted_in_2022dollars)) + geom_line(aes(y =Average_Household_Income, color = "red"))
+
+#COMPAHIdata <- data.frame(both = c(Average_Household_Income, Adjusted_in_2022dollars ))
+
+#insert average household income in california
+
+
 ```
 
 
