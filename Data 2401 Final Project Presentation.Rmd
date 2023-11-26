@@ -72,9 +72,8 @@ What other information can be gleamed from these data?
 
 library(tidyverse)
 library(ggplot2)
-library(ggforce)
 
-irs_SOI_state_migraion_data <- read.csv("~/final-project-fall-2023-marvinb/irs_SOI_state_migraion_data.csv")
+irs_SOI_state_migraion_data <- read.csv("irs_SOI_state_migraion_data.csv")
 glimpse(irs_SOI_state_migraion_data)
 ```
 
