@@ -68,10 +68,11 @@ What other information can be gleamed from these data?
 
 ## Raw Data
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, message=FALSE}
+
 library(tidyverse)
 library(ggplot2)
-
+library(ggforce)
 
 irs_SOI_state_migraion_data <- read.csv("~/final-project-fall-2023-marvinb/irs_SOI_state_migraion_data.csv")
 glimpse(irs_SOI_state_migraion_data)
@@ -81,21 +82,104 @@ glimpse(irs_SOI_state_migraion_data)
 
 
 ```{r, echo=FALSE}
+#filter California to Texas Data
 CATXdata <- irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "CA" & Y2_STATE_ABBR == "TX")
 
 CATXdata <- CATXdata %>% select(Year = Y1, Californians = NUM_EXEMPTIONS, AGI, NUM_RETURNS)
 
-
+#CATXdata <- CATXdata %>% mutate_at(c('Year'), as.factor)
 options(scipen = 999)
 
-ggplot(CATXdata, aes(Year, Californians)) + geom_point() + geom_line() + geom_vline(xintercept = 2013, linetype="dotted", color = "blue") + annotate(geom = "text", x = 2013, y = 100000, label = "2013")
+#plot of California to Texas Data
+
+ggplot(CATXdata, aes(Year, Californians)) + geom_point() + geom_line() + geom_vline(xintercept = 2013, linetype="dotted", color = "blue") + annotate(geom = "text", x = 2013, y = 100000, label = "2013") + theme_bw()
 ```
+
 See the drop in the number of migrants moving to Texas after 2013.
 
 ## Texas to California Migration Data, 1992 to 2020
 
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE, out.width = '100%')
+
+#filter Texas to California Data, Y1
+TXCAdata <- irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "TX" & Y2_STATE_ABBR == "CA")
+
+TXCAdata <- TXCAdata %>% select(Year = Y1, Texans = NUM_EXEMPTIONS, AGI, NUM_RETURNS)
+
+#take out only CA to TX data for Graph 2
+G2_CAdata <- CATXdata %>% select(Year, Californians)
+
+#take out only TX to CA data for graph 2
+G2_TXdata <- TXCAdata %>% select(Year, Texans)
+
+#combine G2_CA to G2_TX dor graphing
+G2_Data <- inner_join(G2_CAdata, G2_TXdata, by = join_by(Year))
+
+options(scipen = 999)
+
+G2_Data <- G2_Data %>% mutate_at(c('Year'), as.factor)
 
 
+#plot of Texans leaving California with G1 at background
+
+ggplot(G2_Data, aes(Year, Texans, group = 2)) + geom_line(color = "firebrick") + geom_line(aes(y=Californians), color = "dodgerblue3") + annotate(geom = "text", x = 7, y = 50000, label = "Californians", color = "dodgerblue3") +  annotate(geom = "text", x = 3, y = 35000, label = "Texans", color = "firebrick") + labs(y = "Number of Migrants") + theme_bw(base_size = 8)
+
+```
+
+
+## Top 3 Destinations for California Migrants, 1992 to 2020
+
+```{r, echo=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = FALSE, out.width = '100%')
+
+TOP3 <- irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "CA" & Y2_STATE_ABBR != "CA") %>% group_by(Y1) %>%  top_n(n=3, NUM_EXEMPTIONS) %>% select(State = Y2_STATE_NAME, NUM_EXEMPTIONS)
+
+TOP3 <- TOP3 %>% mutate_at(c('Y1'), as.factor)
+
+ggplot(TOP3, aes(x = forcats::fct_rev(Y1), NUM_EXEMPTIONS, fill = State)) + geom_col(position = "dodge") + coord_flip() + labs(y = "Number of Migrants", x = "Year") + theme_bw()
+
+#ggplot(TOP3, aes(x=Y1, y=NUM_EXEMPTIONS, fill = Y2_STATE_NAME)) + geom_area(aes(fill=Y2_STATE_NAME, group = Y2_STATE_NAME))
+
+```
+
+## Percent Population of Texas and Destination
+```{r}
+allTEXANS <- irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "TX") %>% select(Y1, State = Y2_STATE_NAME, NUM_EXEMPTIONS)
+
+allTEXANS <- allTEXANS %>% group_by(Y1) %>% mutate(TotalTX = sum(NUM_EXEMPTIONS))
+
+allTEXANS <- allTEXANS %>% mutate_at(c('Y1'), as.factor)
+
+allTEXANS <- allTEXANS %>% group_by(Y1) %>% mutate(Percent_Migration = (NUM_EXEMPTIONS / TotalTX ) * 100) %>% top_n(n=10, Percent_Migration)
+
+ggplot(allTEXANS, aes(x = Y1, y = Percent_Migration, fill = State)) + geom_col() + coord_cartesian(ylim = c(97,100))  + theme_bw(base_size = 8) + labs(y= "Percent Population", x = "Year")
+```
+
+## Percent Population Californians and Destination
+```{r}
+allCA <- irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "CA") %>% select(Y1, State = Y2_STATE_NAME, NUM_EXEMPTIONS)
+
+
+allCA <- allCA %>% group_by(Y1) %>% mutate(TotalCA = sum(NUM_EXEMPTIONS))
+
+head(allCA)
+
+allCA <- allCA %>% mutate_at(c('Y1'), as.factor)
+
+allCA <- allCA %>% group_by(Y1) %>% mutate(Percent_Migration = (NUM_EXEMPTIONS / TotalCA ) * 100) #%>% top_n(n=5, Percent_Migration)
+
+ggplot(allCA, aes(x = Y1, y = Percent_Migration, fill = State)) + geom_col() + coord_cartesian(ylim = c(95,100))  + theme_bw(base_size = 8) + labs(y= "Percent Population", x = "Year")
+```
+
+## NOTES
+
+g
+
+graph4 - migrants moving to texas
+piehchart
+
+graph5 - 
 ## References
 
 Herzog, M., Texas Monthly Staff. (2013, February 5). *Rick Perry to Californians: Come Check Out Texas.* Texas Monthly.  https://www.texasmonthly.com/news-politics/rick-perry-to-californians-come-check-out-texas/

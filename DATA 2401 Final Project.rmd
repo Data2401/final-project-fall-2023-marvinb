@@ -14,8 +14,10 @@ DATA from https://www.kaggle.com/datasets/wumanandpat/irs-migration-data-1992-to
 by Patrick O'Connor
 
 ```{r}
+install.packages("ggforce")
 library(tidyverse)
 library(ggplot2)
+library(ggforce)
 
 irs_SOI_state_migraion_data <- read.csv("irs_SOI_state_migraion_data.csv")
 
