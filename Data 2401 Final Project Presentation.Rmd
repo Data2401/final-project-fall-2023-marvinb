@@ -150,7 +150,7 @@ allTEXANS <- allTEXANS %>% group_by(Y1) %>% mutate(TotalTX = sum(NUM_EXEMPTIONS)
 
 allTEXANS <- allTEXANS %>% mutate_at(c('Y1'), as.factor)
 
-allTEXANS <- allTEXANS %>% group_by(Y1) %>% mutate(Percent_Migration = (NUM_EXEMPTIONS / TotalTX ) * 100) %>% top_n(n=10, Percent_Migration)
+allTEXANS <- allTEXANS %>% group_by(Y1) %>% mutate(Percent_Migration = (NUM_EXEMPTIONS / TotalTX ) * 100) %>% top_n(n=5, Percent_Migration)
 
 ggplot(allTEXANS, aes(x = Y1, y = Percent_Migration, fill = State)) + geom_col() + coord_cartesian(ylim = c(97,100))  + theme_bw(base_size = 8) + labs(y= "Percent Population", x = "Year")
 ```
@@ -163,12 +163,65 @@ allCA <- irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "CA") %>% selec
 allCA <- allCA %>% group_by(Y1) %>% mutate(TotalCA = sum(NUM_EXEMPTIONS))
 
 head(allCA)
+
 options(scipen = 999)
+
 allCA <- allCA %>% mutate_at(c('Y1'), as.factor)
 
 allCA <- allCA %>% group_by(Y1) %>% mutate(Percent_Migration = (NUM_EXEMPTIONS / TotalCA ) * 100) %>% top_n(n=5, Percent_Migration)
 
-ggplot(allCA, aes(x = Y1, y = Percent_Migration, fill = State)) + geom_col() +  scale_y_log10() +  theme_bw(base_size = 8) + labs(y= "Percent Population", x = "Year") +  coord_flip() #+ coord_cartesian(ylim = c(97, NA)) 
+stateCA_levels <- c("Texas", "Arizona", "Foreign", "Nevada", "Washington", "Oregon", "California")
+
+#use position stack reverse as temporary solution
+ggplot(allCA, aes(x = Y1, y = Percent_Migration, fill = State, order = Percent_Migration, group = State)) + geom_col( position = position_stack(reverse = TRUE)) +  theme_bw(base_size = 8) + labs(y= "Percent Population", x = "Year") + coord_cartesian(ylim = c(97, 100)) 
+
+```
+
+## Household Income of Californians Migrating to Texas
+
+```{r}
+n1_CATXdata <- CATXdata %>% mutate_at(c('Year'), as.factor)
+
+n1_CATXdata <- n1_CATXdata %>% mutate(Average_Household_Income = (AGI*1000)/(NUM_RETURNS))
+
+ggplot(n1_CATXdata, aes(Year, y = Average_Household_Income, group = 3)) + geom_line(color = "dodgerblue3") + theme_bw() + labs(y = "Average Household Income")
+```
+## Applying Inflation Correction (in 2022 dollars)
+
+
+```{r}
+CPI = c(138.158, 142.058, 145.642, 149.758, 154.142, 157.558, 159.658, 163.233, 168.892,
+        173.517, 175.875, 179.808, 184.483, 190.975, 197.142, 202.767, 211.053, 209.630, 213.967,
+        221.575, 226.229, 229.324, 232.771, 231.810, 234.076, 239.051, 245.146, 249.222, 252.248)
+#from https://www.ssa.gov/oact/STATS/avgcpi.html
+
+new_AHIdata <- n1_CATXdata %>% select(Year, Average_Household_Income)
+
+#add CPI to new_AHIdata
+new_AHIdata <- cbind(new_AHIdata, CPI) 
+
+#inflation rate in 2020 compared to 2022 = 
+# [(CPI for 2022 - CPI for 2020 ) / (CPI for 2020)] x 100%
+
+new_AHIdata <- new_AHIdata %>% mutate(new_AHIdata, inflation2022factor = ((287.984 - CPI)/CPI))
+
+#income in 2020 (compared to 2022 dollars) = 
+#(income in 2020) / (inflation rate in 2020 compared to 2022)
+
+new_AHIdata <- new_AHIdata %>% mutate(Adjusted_in_2022dollars = Average_Household_Income*(1+inflation2022factor))
+
+#head(new_AHIdata)
+
+ggplot(new_AHIdata, aes(Year, y = Average_Household_Income, group = 3)) + geom_line(color = "dodgerblue3") + theme_bw() + labs(y = "Average Household Income") + geom_line(aes(y=Adjusted_in_2022dollars), color = "gold2")
+```
+
+
+
+
+```{r}
+head(allCA)
+
+#ggplot(allCA, aes(x = Y1, y = Percent_Migration, fill = State)) + geom_col() #+  scale_y_log10() +  theme_bw(base_size = 8) + labs(y= "Percent Population", x = "Year") + coord_cartesian(ylim = c(97, NA)) 
 ```
 
 ## NOTES
