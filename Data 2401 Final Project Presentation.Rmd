@@ -163,12 +163,12 @@ allCA <- irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "CA") %>% selec
 allCA <- allCA %>% group_by(Y1) %>% mutate(TotalCA = sum(NUM_EXEMPTIONS))
 
 head(allCA)
-
+options(scipen = 999)
 allCA <- allCA %>% mutate_at(c('Y1'), as.factor)
 
-allCA <- allCA %>% group_by(Y1) %>% mutate(Percent_Migration = (NUM_EXEMPTIONS / TotalCA ) * 100) #%>% top_n(n=5, Percent_Migration)
+allCA <- allCA %>% group_by(Y1) %>% mutate(Percent_Migration = (NUM_EXEMPTIONS / TotalCA ) * 100) %>% top_n(n=5, Percent_Migration)
 
-ggplot(allCA, aes(x = Y1, y = Percent_Migration, fill = State)) + geom_col() + coord_cartesian(ylim = c(95,100))  + theme_bw(base_size = 8) + labs(y= "Percent Population", x = "Year")
+ggplot(allCA, aes(x = Y1, y = Percent_Migration, fill = State)) + geom_col() +  scale_y_log10() +  theme_bw(base_size = 8) + labs(y= "Percent Population", x = "Year") +  coord_flip() #+ coord_cartesian(ylim = c(97, NA)) 
 ```
 
 ## NOTES
