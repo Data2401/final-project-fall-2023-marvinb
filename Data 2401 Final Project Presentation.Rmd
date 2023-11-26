@@ -57,13 +57,14 @@ We can now ask:
 
 - How many individuals are migrating to Texas from California?
 
-- How many individuals are migrating from Texas to California?
-
-- Is there a pattern to this migration?
+- What is the net migration from California to Texas?
 
 - What is the household income of these migrants?
 
-- What other information can be gleamed from these data?
+- Was Gov. Rick Perry's advertising campaign effective?
+
+- 
+What other information can be gleamed from these data?
 
 ## Raw Data
 
@@ -78,9 +79,22 @@ glimpse(irs_SOI_state_migraion_data)
 
 ## California to Texas Migration Data, 1992 to 2020
 
-```{r}
 
+```{r, echo=FALSE}
+CATXdata <- irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "CA" & Y2_STATE_ABBR == "TX")
+
+CATXdata <- CATXdata %>% select(Year = Y1, Californians = NUM_EXEMPTIONS, AGI, NUM_RETURNS)
+
+
+options(scipen = 999)
+
+ggplot(CATXdata, aes(Year, Californians)) + geom_point() + geom_line() + geom_vline(xintercept = 2013, linetype="dotted", color = "blue") + annotate(geom = "text", x = 2013, y = 100000, label = "2013")
 ```
+See the drop in the number of migrants moving to Texas after 2013.
+
+## Texas to California Migration Data, 1992 to 2020
+
+
 
 ## References
 
