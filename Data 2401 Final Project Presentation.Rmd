@@ -57,8 +57,6 @@ We can now ask:
 
 - How many individuals are migrating to Texas from California?
 
-- What is the net migration from California to Texas?
-
 - What is the household income of these migrants?
 
 - Was Gov. Rick Perry's advertising campaign effective?
@@ -96,7 +94,7 @@ ggplot(CATXdata, aes(Year, Californians)) + geom_point() + geom_line() + geom_vl
 
 See the drop in the number of migrants moving to Texas after 2013.
 
-## Texas to California Migration Data, 1992 to 2020
+## Texas vs. California Migration Data, 1992 to 2020
 
 ```{r, echo=FALSE}
 knitr::opts_chunk$set(echo = FALSE, out.width = '100%')
@@ -122,7 +120,7 @@ G2_Data <- G2_Data %>% mutate_at(c('Year'), as.factor)
 
 #plot of Texans leaving California with G1 at background
 
-ggplot(G2_Data, aes(Year, Texans, group = 2)) + geom_line(color = "firebrick") + geom_line(aes(y=Californians), color = "dodgerblue3") + annotate(geom = "text", x = 7, y = 50000, label = "Californians", color = "dodgerblue3") +  annotate(geom = "text", x = 3, y = 35000, label = "Texans", color = "firebrick") + labs(y = "Number of Migrants") + theme_bw(base_size = 8)
+ggplot(G2_Data, aes(Year, Texans, group = 2)) + geom_line(color = "firebrick") + geom_line(aes(y=Californians), color = "dodgerblue3") + annotate(geom = "text", x = 8, y = 60000, label = "Californians Moving to Texas", color = "dodgerblue3") +  annotate(geom = "text", x = 5, y = 38000, label = "Texans Moving to California", color = "firebrick") + labs(y = "Number of Migrants") + theme_bw(base_size = 8)
 
 ```
 
@@ -141,8 +139,9 @@ ggplot(TOP3, aes(x = forcats::fct_rev(Y1), NUM_EXEMPTIONS, fill = State)) + geom
 #ggplot(TOP3, aes(x=Y1, y=NUM_EXEMPTIONS, fill = Y2_STATE_NAME)) + geom_area(aes(fill=Y2_STATE_NAME, group = Y2_STATE_NAME))
 
 ```
+Californians began moving to Texas in greater numbers in 2004.
 
-## Percent Population of Texas and Destination
+## Percent Population of Texas and Eventual Destination
 ```{r}
 allTEXANS <- irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "TX") %>% select(Y1, State = Y2_STATE_NAME, NUM_EXEMPTIONS)
 
@@ -154,15 +153,15 @@ allTEXANS <- allTEXANS %>% group_by(Y1) %>% mutate(Percent_Migration = (NUM_EXEM
 
 ggplot(allTEXANS, aes(x = Y1, y = Percent_Migration, fill = State)) + geom_col() + coord_cartesian(ylim = c(97,100))  + theme_bw(base_size = 8) + labs(y= "Percent Population", x = "Year")
 ```
+Less than 3% of Texans move out of state. Note that some Texans are migrating overseas.
 
-## Percent Population Californians and Destination
+
+## Percent Population Californians and Eventual Destination
 ```{r}
 allCA <- irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "CA") %>% select(Y1, State = Y2_STATE_NAME, NUM_EXEMPTIONS)
 
 
 allCA <- allCA %>% group_by(Y1) %>% mutate(TotalCA = sum(NUM_EXEMPTIONS))
-
-head(allCA)
 
 options(scipen = 999)
 
@@ -176,19 +175,40 @@ stateCA_levels <- c("Texas", "Arizona", "Foreign", "Nevada", "Washington", "Oreg
 ggplot(allCA, aes(x = Y1, y = Percent_Migration, fill = State, order = Percent_Migration, group = State)) + geom_col( position = position_stack(reverse = TRUE)) +  theme_bw(base_size = 8) + labs(y= "Percent Population", x = "Year") + coord_cartesian(ylim = c(97, 100)) 
 
 ```
+Less than 3% of Californians move out of state, same as with Texans.
 
-## Household Income of Californians Migrating to Texas
+## Household Income of Californians Migrating to Texas Part 1
+
+Both the IRS and O'Connor's Kaggle Data provide AGI, the aggregate gross income of all transplants in thousands. If we divide this by the number of tax returns filed, we can now obtain the average household income in that particular year.
+
+Average Household Income = (AGI * 1000 )/ NUM_RETURNS
+
+## Household Income of Californians Migrating to Texas Part 2
 
 ```{r}
 n1_CATXdata <- CATXdata %>% mutate_at(c('Year'), as.factor)
 
 n1_CATXdata <- n1_CATXdata %>% mutate(Average_Household_Income = (AGI*1000)/(NUM_RETURNS))
 
-ggplot(n1_CATXdata, aes(Year, y = Average_Household_Income, group = 3)) + geom_line(color = "dodgerblue3") + theme_bw() + labs(y = "Average Household Income")
+ggplot(n1_CATXdata, aes(Year, y = Average_Household_Income, group = 3)) + geom_line(color = "dodgerblue3") + theme_bw(base_size = 8) + labs(y = "Average Household Income") + labs(y = "Household Income in Dollars") +  annotate(geom = "text", x = 12, y = 65000, label = "Average Household Income", color = "dodgerblue3")
 ```
-## Applying Inflation Correction (in 2022 dollars)
+After 2009, the average household income of California transplants start to increase.
+
+## Applying Inflation Correction (in 2022 dollars) Part 1
+
+To perform an inflation correction, we now obtain the average CPI data every year from 1992 to 2020 (FRED, 2023).
+
+As an example calculation, we get the inflation rate in 2020 compared to 2020 dollars by:
+
+2020 Inflation Rate = [(CPI_2022 - CPI_2020 )/ (CPI_2020)] * 100%
+
+2020 Income in 2022 dollars = [2020 Income * (1+Inflation Rate) ]
+
+We now apply this to the whole dataset.
 
 
+
+## Applying Inflation Correction (in 2022 dollars) Part 2
 ```{r}
 CPI = c(138.158, 142.058, 145.642, 149.758, 154.142, 157.558, 159.658, 163.233, 168.892,
         173.517, 175.875, 179.808, 184.483, 190.975, 197.142, 202.767, 211.053, 209.630, 213.967,
@@ -212,29 +232,45 @@ new_AHIdata <- new_AHIdata %>% mutate(Adjusted_in_2022dollars = Average_Househol
 
 #head(new_AHIdata)
 
-ggplot(new_AHIdata, aes(Year, y = Average_Household_Income, group = 3)) + geom_line(color = "dodgerblue3") + theme_bw() + labs(y = "Average Household Income") + geom_line(aes(y=Adjusted_in_2022dollars), color = "gold2")
+ggplot(new_AHIdata, aes(Year, y = Average_Household_Income, group = 3)) + geom_line(color = "dodgerblue3") + theme_bw(base_size = 8) + labs(y = "Average Household Income") + geom_line(aes(y=Adjusted_in_2022dollars), color = "goldenrod3") + annotate(geom = "text", x = 8, y = 105000, label = "Average Household Income in 2022 dollars", color = "goldenrod3") + labs(y = "Household Income in Dollars") +  annotate(geom = "text", x = 12, y = 65000, label = "Average Household Income", color = "dodgerblue3")
 ```
 
+## Comparing California Median Household Income versus Texas-bound Californians
 
+```{r}
+#Median Household Income (2022 dollars, I believe!) from https://fred.stlouisfed.org/series/MEHOINUSCAA646N
+MHI = c(34900, 34070, 35330, 37010, 38810, 39690, 40930, 43630, 46820, 47260, 47440, 49300, 49220, 51760, 55320, 55730, 57010, 56130, 54280, 53370, 57020, 60790, 60490, 63640, 66640, 70040, 70490, 78110, 77650)
+
+new_AHIdata <- cbind(new_AHIdata, MHI)
+```
 
 
 ```{r}
-head(allCA)
+ggplot(new_AHIdata, aes(Year, y = Average_Household_Income, group = 4)) + geom_line(color = "dodgerblue3") + theme_bw(base_size = 8) + labs(y = "Average Household Income") + geom_line(aes(y=Adjusted_in_2022dollars), color = "goldenrod3") + geom_line(aes(y=MHI), color = "firebrick4") + annotate(geom = "text", x = 20, y = 35000, label = "California Median Household Income in 2022 dollars", color = "firebrick4") +  annotate(geom = "text", x = 8, y = 105000, label = "Average Household Income in 2022 dollars", color = "goldenrod3") +  annotate(geom = "text", x = 12, y = 65000, label = "Average Household Income", color = "dodgerblue3") + labs(y = "Household Income in Dollars")
 
-#ggplot(allCA, aes(x = Y1, y = Percent_Migration, fill = State)) + geom_col() #+  scale_y_log10() +  theme_bw(base_size = 8) + labs(y= "Percent Population", x = "Year") + coord_cartesian(ylim = c(97, NA)) 
 ```
+Since 2009, the average household income of Californians moving to Texas have been increasing dramatically, after adjusting for inflation.
 
-## NOTES
 
-g
+## Summary
 
-graph4 - migrants moving to texas
-piehchart
+Californians have been moving to Texas in greater numbers since 2004. At least 50,000 Californians are moving yearly since then. In 2020, 100,000 Californians have moved to Texas.
 
-graph5 - 
+Between 2-3% of residents of both California and Texas move somewhere else.
+
+The average California transplant to Texas is well-off, earning double the average household income in California.
+
+In 2020, the average California transplant's household income has risen to 150,000.
+
+Gov. Rick Perry's advertising campaign seems to have been triggered by a dip in migration from California, however, it is still true that Californians have been steadily moving to Texas on their own since 2004.
+
+
 ## References
 
 Herzog, M., Texas Monthly Staff. (2013, February 5). *Rick Perry to Californians: Come Check Out Texas.* Texas Monthly.  https://www.texasmonthly.com/news-politics/rick-perry-to-californians-come-check-out-texas/
 
 O'Connor, P. (2023, September). *IRS Migration Data - 1992 to 2020.* kaggle. https://www.kaggle.com/datasets/wumanandpat/irs-migration-data-1992-to-2020
-T
+
+Bureau of Labor Statistics. (2023, November). *Average CPI by Quarter and Year*. Social Security Administration. https://www.ssa.gov/oact/STATS/avgcpi.html
+
+Federal Reserve Economic Data, St. Louis FED. (2023, November). *Median Household Income in California*. Economic Research, Federal Reserve Bank of St. Louis. https://fred.stlouisfed.org/series/MEHOINUSCAA646N
