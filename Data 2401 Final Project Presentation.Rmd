@@ -251,6 +251,25 @@ ggplot(new_AHIdata, aes(Year, y = Average_Household_Income, group = 4)) + geom_l
 ```
 Since 2009, the average household income of Californians moving to Texas have been increasing dramatically, after adjusting for inflation.
 
+## Texas Median Household Income
+
+```{r}
+#Texas Median Household Income https://fred.stlouisfed.org/series/MEHOINUSTXA646N
+MHITX = c(27950,28730, 30760, 32040, 33070, 35080, 35780, 38690, 38610,
+          40860, 40150, 39270, 41400, 41420, 43310, 46050, 46490, 47480, 47270,
+          49050, 51930, 51410, 53880, 56470, 58150, 60090, 59790, 67440, 68400)
+
+new_AHIdata <- cbind(new_AHIdata, MHITX)
+```
+
+```{r}
+ggplot(new_AHIdata, aes(Year, y = Average_Household_Income, group = 4)) + theme_bw(base_size = 8) + labs(y = "Average Household Income") + 
+  geom_line(aes(y=Adjusted_in_2022dollars), color = "goldenrod3") + 
+  geom_line(aes(y=MHITX), color = "firebrick4") + 
+  annotate(geom = "text", x = 20, y = 35000, label = "Texas Median Household Income in 2022 dollars", color = "firebrick4") +  
+  annotate(geom = "text", x = 12, y = 115000, label = "Average Household Income in 2022 dollars (California Transplant)", color = "goldenrod3") +  
+  labs(y = "Household Income in Dollars")
+```
 
 ## Summary
 
@@ -258,7 +277,7 @@ Californians have been moving to Texas in greater numbers since 2004. At least 5
 
 Between 2-3% of residents of both California and Texas move somewhere else.
 
-The average California transplant to Texas is well-off, earning double the average household income in California.
+The average California transplant to Texas is well-off, earning double the average household income in California and in Texas.
 
 In 2020, the average California transplant's household income has risen to 150,000.
 
@@ -274,3 +293,5 @@ O'Connor, P. (2023, September). *IRS Migration Data - 1992 to 2020.* kaggle. htt
 Bureau of Labor Statistics. (2023, November). *Average CPI by Quarter and Year*. Social Security Administration. https://www.ssa.gov/oact/STATS/avgcpi.html
 
 Federal Reserve Economic Data, St. Louis FED. (2023, November). *Median Household Income in California*. Economic Research, Federal Reserve Bank of St. Louis. https://fred.stlouisfed.org/series/MEHOINUSCAA646N
+
+Federal Reserve Economic Data, St. Louis FED. (2023, November). *Median Household Income in Texas*. Economic Research, Federal Reserve Bank of St. Louis. https://fred.stlouisfed.org/series/MEHOINUSTXA646N
