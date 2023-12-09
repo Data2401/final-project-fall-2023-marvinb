@@ -38,9 +38,9 @@ Conveniently, user Patrick O'Connor in Kaggle, published a data set containing d
 
 Patrick O'Connor's dataset, uploaded in Kaggle, is a collection of IRS Migration Data from 1992 to 2020. The IRS dataset, however, starts in 1990 and also includes the counties from which the migrants moved from and their destination. The IRS dataset is massive but is only collected and reported on a yearly basis. Patrick O'Connor combined these datasets from 1993 to 2020 but removed the county codes. 
 
-Note that the IRS only begun including AGI data in 1993. Hence, there will be no AGI figures to be reported before that year (IRS, 2023). Essentially, the data begins in 1993, after the tax filers completed their move.
+Note that the IRS only begun including AGI data in 1993. Hence, there will be no AGI figures to be reported before that year (IRS, 2023). It is important to note that the AGI figure in 1993 is the figure earned by the migrant in 1992.
 
-Patrick O'Connor treats the year before as the start of the migration. However, this report will treat the next year as the starting year, after the tax filers completed the move (signaled by the filing of taxes with the new address).
+Thus this report will capture the tax filer's residence and income earned during the year they are trying to migrate, as opposed to the year they have successfully completed their move (signaled by the change in address in the next year's tax return).
 
 The O'Connor dataset contains 9 fields, most of whom are state codes and abbreviations. The important fields include:
 
@@ -90,6 +90,10 @@ These are some of the questions this report maybe ready to answer:
 
 * What other information can be gleamed from these data?
 
+## Limitations of the Data
+
+The dataset in no way represents the actual number of migrants of any state. A good example of those who are left out are undocumented immigrants who do not file tax returns. Some undocumented immigrants use an Individual Taxpayer Identification number (ITIN), but the Statistics of Income Division of the IRS does not say anything in particular about this distinction. The Foreign component of the dataset actually refers to the District of Columbia, the Virgin Islands, Puerto Rico, AFO/FPO (military bases) and other areas (IRS, 2023).
+
 ## Packages Used
 
 ```{r message=FALSE}
@@ -112,7 +116,7 @@ The O'Connor Kaggle Data is still arranged year to year, with each state, starti
 
 The **AGI** stands for aggregate gross income, and is reported in the thousands. This means that to obtain the true AGI in dollars, they have to be multiplied by 1000.
 
-Each line in the data includes Y1 (previous year), Y2 (current year), Y1_State_x (previous state), Y2_State_x (current state), NUM_RETURNS (number of tax returns filed in Y2), AGI (the total income of all the filers in NUM_RETURNS).
+Each line in the data includes Y1 (migration year), Y2 (filing year), Y1_State_x (previous state), Y2_State_x (current state), NUM_RETURNS (number of tax returns filed in Y1), AGI (the total income of all the filers in NUM_RETURNS).
 
 ## California to Texas Migration Data, 1993 to 2020
 
@@ -123,7 +127,7 @@ To obtain migration data from California to Texas, we use Y1_STATE_ABBR = "CA" a
 #filter California to Texas Data
 CATXdata <- irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "CA" & Y2_STATE_ABBR == "TX")
 
-CATXdata <- CATXdata %>% select(Year = Y2, Californians = NUM_EXEMPTIONS, AGI, NUM_RETURNS)
+CATXdata <- CATXdata %>% select(Year = Y1, Californians = NUM_EXEMPTIONS, AGI, NUM_RETURNS)
 
 CATXdata
 ```
@@ -139,9 +143,9 @@ ggplot(CATXdata, aes(Year, Californians)) + geom_point() + geom_line() + geom_vl
 
 ```
 
-At least 40,000 Californians are moving to Texas, yearly. In 2021, more than 100,000 Californians have moved to Texas. Note that there is a drop in migration around 2015, but Californians have been migrating steadily in increasing numbers since 2004.
+At least 40,000 Californians are moving to Texas, yearly. In 2020, more than 100,000 Californians have moved to Texas. Note that there is a drop in migration around 2013, but Californians have been migrating steadily in increasing numbers since 2004.
 
-## Texas vs. California Migration Data, 1993 to 2021
+## Texas vs. California Migration Data, 1992 to 2020
 
 ```{r, echo=FALSE}
 knitr::opts_chunk$set(echo = FALSE, out.width = '100%')
@@ -149,7 +153,7 @@ knitr::opts_chunk$set(echo = FALSE, out.width = '100%')
 #filter Texas to California Data, Y1
 TXCAdata <- irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "TX" & Y2_STATE_ABBR == "CA")
 
-TXCAdata <- TXCAdata %>% select(Year = Y2, Texans = NUM_EXEMPTIONS, AGI, NUM_RETURNS)
+TXCAdata <- TXCAdata %>% select(Year = Y1, Texans = NUM_EXEMPTIONS, AGI, NUM_RETURNS)
 
 #take out only CA to TX data for Graph 2
 G2_CAdata <- CATXdata %>% select(Year, Californians)
@@ -173,16 +177,16 @@ ggplot(G2_Data, aes(Year, Texans, group = 2)) + geom_line(color = "firebrick") +
 
 Note that net migration between California and Texas favors California migration to Texas.
 
-## Top 3 Destinations for California Migrants, 1993 to 2020.
+## Top 3 Destinations for California Migrants, 1992 to 2020.
 
 ```{r, echo=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = FALSE, out.width = '100%')
 
-TOP3 <- irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "CA" & Y2_STATE_ABBR != "CA") %>% group_by(Y2) %>%  top_n(n=3, NUM_EXEMPTIONS) %>% select(State = Y2_STATE_NAME, NUM_EXEMPTIONS)
+TOP3 <- irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "CA" & Y2_STATE_ABBR != "CA") %>% group_by(Y1) %>%  top_n(n=3, NUM_EXEMPTIONS) %>% select(State = Y2_STATE_NAME, NUM_EXEMPTIONS)
 
-TOP3 <- TOP3 %>% mutate_at(c('Y2'), as.factor)
+TOP3 <- TOP3 %>% mutate_at(c('Y1'), as.factor)
 
-ggplot(TOP3, aes(x = forcats::fct_rev(Y2), NUM_EXEMPTIONS, fill = State)) + geom_col(position = "dodge") + coord_flip() + labs(y = "Number of Migrants", x = "Year") + theme_bw()
+ggplot(TOP3, aes(x = forcats::fct_rev(Y1), NUM_EXEMPTIONS, fill = State)) + geom_col(position = "dodge") + coord_flip() + labs(y = "Number of Migrants", x = "Year") + theme_bw()
 
 ```
 Note that Californians began moving to Texas in greater numbers starting in 2004.
@@ -191,34 +195,34 @@ Note that Californians began moving to Texas in greater numbers starting in 2004
 ## Top Destinations of Texas Migrants
 ```{r}
 #without texans
-sansTEXANS <- irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "TX" & Y2_STATE_ABBR != "TX") %>% select(Y2, State = Y2_STATE_NAME, NUM_EXEMPTIONS)
+sansTEXANS <- irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "TX" & Y2_STATE_ABBR != "TX") %>% select(Y1, State = Y2_STATE_NAME, NUM_EXEMPTIONS)
 
-sansTEXANS <- sansTEXANS %>% group_by(Y2) %>% mutate(TotalnotTX = sum(NUM_EXEMPTIONS))
+sansTEXANS <- sansTEXANS %>% group_by(Y1) %>% mutate(TotalnotTX = sum(NUM_EXEMPTIONS))
 
 
-sansTEXANS <- sansTEXANS %>% group_by(Y2) %>% mutate(Percent_Migration = (NUM_EXEMPTIONS / TotalnotTX ) ) %>% top_n(n=5, Percent_Migration)
+sansTEXANS <- sansTEXANS %>% group_by(Y1) %>% mutate(Percent_Migration = (NUM_EXEMPTIONS / TotalnotTX ) ) %>% top_n(n=5, Percent_Migration)
 
-ggplot(sansTEXANS, aes(x = Y2, y = Percent_Migration, fill = State)) + geom_col() + scale_y_continuous(labels = scales::percent) + facet_wrap(.~State) + labs(y= "Percent Migrants", x = "Year")
+ggplot(sansTEXANS, aes(x = Y1, y = Percent_Migration, fill = State)) + geom_col() + scale_y_continuous(labels = scales::percent) + facet_wrap(.~State) + labs(y= "Percent Migrants", x = "Year")
 
 ```
-Note that a significant population of Texans leave for a foreign counties, from 1990s to 2010. Also note that, in 2007, there is a spike in Texans moving to Louisiana.
+Note that a significant population of Texans leave for a foreign counties, from 1990s to 2010. Also note that, in 2006, there is a spike in Texans moving to Louisiana.
 
 
 ## Non-migrant Population of Texans
 
 ```{r}
-allTEXANS <- irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "TX") %>% select(Y2, State = Y2_STATE_NAME, NUM_EXEMPTIONS)
+allTEXANS <- irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "TX") %>% select(Y1, State = Y1_STATE_NAME, NUM_EXEMPTIONS)
 
-allTEXANS <- allTEXANS %>% group_by(Y2) %>% mutate(TotalTX = sum(NUM_EXEMPTIONS))
+allTEXANS <- allTEXANS %>% group_by(Y1) %>% mutate(TotalTX = sum(NUM_EXEMPTIONS))
 
-allTEXANS <- allTEXANS %>% mutate_at(c('Y2'), as.factor)
+allTEXANS <- allTEXANS %>% mutate_at(c('Y1'), as.factor)
 
-allTEXANS <- allTEXANS %>% group_by(Y2) %>% mutate(Percent_Migration = (NUM_EXEMPTIONS / TotalTX ) * 100) %>% top_n(n=1, Percent_Migration)
+allTEXANS <- allTEXANS %>% group_by(Y1) %>% mutate(Percent_Migration = (NUM_EXEMPTIONS / TotalTX ) * 100) %>% top_n(n=1, Percent_Migration)
 
-allTEXANS %>% select(Year = Y2, Percent_Migration)
+allTEXANS %>% select(Year = Y1, Percent_Migration)
   
-ggplot(allTEXANS, aes(x = Y2, y = Percent_Migration, group = State, fill = State)) + geom_col()  + theme_bw(base_size = 8) + labs(y= "Percent Population", x = "Year") + geom_hline(yintercept = 97, linetype="solid", color = "blue") + annotate(geom = "text", x = 10, y = 97.2, label = "97%", color = "blue") +
-  theme_bw(base_size = 7)
+ggplot(allTEXANS, aes(x = Y1, y = Percent_Migration, group = State, fill = State)) + geom_col()  + theme_bw(base_size = 8) + labs(y= "Percent Population", x = "Year") + geom_hline(yintercept = 97, linetype="solid", color = "blue") + annotate(geom = "text", x = 10, y = 97.2, label = "97%", color = "blue") +
+  theme_bw(base_size = 6)
 ```
 Between 2-3% of Texans migrate annually for other states.
 
@@ -226,31 +230,31 @@ Between 2-3% of Texans migrate annually for other states.
 
 ```{r}
 #without Californians
-sansCAL <- irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "CA" & Y2_STATE_ABBR != "CA") %>% select(Y2, State = Y2_STATE_NAME, NUM_EXEMPTIONS)
+sansCAL <- irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "CA" & Y2_STATE_ABBR != "CA") %>% select(Y1, State = Y2_STATE_NAME, NUM_EXEMPTIONS)
 
-sansCAL <- sansCAL %>% group_by(Y2) %>% mutate(TotalnotCA = sum(NUM_EXEMPTIONS))
+sansCAL <- sansCAL %>% group_by(Y1) %>% mutate(TotalnotCA = sum(NUM_EXEMPTIONS))
 
 
-sansCAL <- sansCAL %>% group_by(Y2) %>% mutate(Percent_Migration = (NUM_EXEMPTIONS / TotalnotCA ) ) %>% top_n(n=5, Percent_Migration)
+sansCAL <- sansCAL %>% group_by(Y1) %>% mutate(Percent_Migration = (NUM_EXEMPTIONS / TotalnotCA ) ) %>% top_n(n=5, Percent_Migration)
 
-ggplot(sansCAL, aes(x = Y2, y = Percent_Migration, fill = State)) + geom_col() + scale_y_continuous(labels = scales::percent) + facet_wrap(.~State) + labs(y= "Percent Migrants", x = "Year")
+ggplot(sansCAL, aes(x = Y1, y = Percent_Migration, fill = State)) + geom_col() + scale_y_continuous(labels = scales::percent) + facet_wrap(.~State) + labs(y= "Percent Migrants", x = "Year")
 ```
 Texas features prominently as the top destination for California migrants, with at least 9% migrating annually. Foreign migration is also a feature, but to a lesser degree than Texas.
 
 ## Non-migrant Population of California
 
 ```{r}
-allCA <- irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "CA" ) %>% select(Y2, State = Y2_STATE_NAME, NUM_EXEMPTIONS)
+allCA <- irs_SOI_state_migraion_data %>% filter(Y1_STATE_ABBR == "CA" ) %>% select(Y1, State = Y2_STATE_NAME, NUM_EXEMPTIONS)
 
-allCA <- allCA %>% group_by(Y2) %>% mutate(TotalCA = sum(NUM_EXEMPTIONS))
+allCA <- allCA %>% group_by(Y1) %>% mutate(TotalCA = sum(NUM_EXEMPTIONS))
 
-allCA <- allCA %>% mutate_at(c('Y2'), as.factor)
+allCA <- allCA %>% mutate_at(c('Y1'), as.factor)
 
-allCA <- allCA %>% group_by(Y2) %>% mutate(Percent_Migration = (NUM_EXEMPTIONS / TotalCA ) * 100) %>% top_n(n=1, Percent_Migration)
+allCA <- allCA %>% group_by(Y1) %>% mutate(Percent_Migration = (NUM_EXEMPTIONS / TotalCA ) * 100) %>% top_n(n=1, Percent_Migration)
 
-allCA %>% select(Year = Y2, Percent_Migration)
+allCA %>% select(Year = Y1, Percent_Migration)
   
-ggplot(allCA, aes(x = Y2, y = Percent_Migration, group = State, fill = State)) + geom_col()  + theme_bw(base_size = 8) + labs(y= "Percent Population", x = "Year") + geom_hline(yintercept = 97, linetype="solid", color = "blue") + annotate(geom = "text", x = 10, y = 97.2, label = "97%", color = "blue")
+ggplot(allCA, aes(x = Y1, y = Percent_Migration, group = State, fill = State)) + geom_col()  + theme_bw(base_size = 7) + labs(y= "Percent Population", x = "Year") + geom_hline(yintercept = 97, linetype="solid", color = "blue") + annotate(geom = "text", x = 10, y = 97.2, label = "97%", color = "blue")
 
 ```
 
@@ -260,14 +264,14 @@ Both California and Texas have similar levels of migration -- 97-98% do not migr
 ## Top State Migrants Moving to Texas
 
 ```{r}
-TXmovers <- irs_SOI_state_migraion_data %>% filter(Y2_STATE_ABBR == "TX" & Y1_STATE_ABBR != "TX") %>% select(Y2, State = Y1_STATE_NAME, NUM_EXEMPTIONS)
+TXmovers <- irs_SOI_state_migraion_data %>% filter(Y2_STATE_ABBR == "TX" & Y1_STATE_ABBR != "TX") %>% select(Y1, State = Y1_STATE_NAME, NUM_EXEMPTIONS)
 
-TXmovers <- TXmovers %>% group_by(Y2) %>% mutate(Totalmovers = sum(NUM_EXEMPTIONS))
+TXmovers <- TXmovers %>% group_by(Y1) %>% mutate(Totalmovers = sum(NUM_EXEMPTIONS))
 
 
-TXmovers <- TXmovers %>% group_by(Y2) %>% mutate(Percent_Migration = (NUM_EXEMPTIONS / Totalmovers ) ) %>% top_n(n=9, Percent_Migration)
+TXmovers <- TXmovers %>% group_by(Y1) %>% mutate(Percent_Migration = (NUM_EXEMPTIONS / Totalmovers ) ) %>% top_n(n=9, Percent_Migration)
 
-ggplot(TXmovers, aes(x = Y2, y = Percent_Migration, fill = State)) + geom_col() + scale_y_continuous(labels = scales::percent) + facet_wrap(.~State) + labs(y= "Percent Migrants", x = "Year")
+ggplot(TXmovers, aes(x = Y1, y = Percent_Migration, fill = State)) + geom_col() + scale_y_continuous(labels = scales::percent) + facet_wrap(.~State) + labs(y= "Percent Migrants", x = "Year")
 
 ```
 Californians feature prominently in this data. However, notice the jump in Louisiana in the mid-2000's,
@@ -279,14 +283,14 @@ LA2006 <- TXmovers %>% filter(State == "LOUISIANA")
 
 
 
-ggplot(LA2006, aes(x = Y2, y= NUM_EXEMPTIONS, fill = State)) + geom_col(fill='tan', color = 'black') + 
+ggplot(LA2006, aes(x = Y1, y= NUM_EXEMPTIONS, fill = State)) + geom_col(fill='tan', color = 'black') + 
   labs(y= "Number of Migrants", x = "Year") +
-  geom_vline(xintercept = 2006, linetype="longdash", color = 'black' ) + 
-  annotate(geom = "text", x = 2008, y = 70000, label = "2006", color = 'black' ) 
+  geom_vline(xintercept = 2005, linetype="longdash", color = 'black' ) + 
+  annotate(geom = "text", x = 2008, y = 70000, label = "2005", color = 'black' ) 
 
   
 ```
-Hurricane Katrina made landfall in New Orleans, Louisiana on August 29, 2005 (National Weather Service, 2022). Notice that there was also significant migration out of Texas back to Louisiana starting in 2007.
+Hurricane Katrina made landfall in New Orleans, Louisiana on **August 29, 2005** (National Weather Service, 2022). Notice that there was also significant migration out of Texas back to Louisiana starting in 2007.
 
 ## Household Income of Californians Migrating To Texas
 
@@ -301,11 +305,11 @@ n1_CATXdata <- n1_CATXdata %>% mutate(Average_Household_Income = (AGI*1000)/(NUM
 
 ggplot(n1_CATXdata, aes(Year, y = Average_Household_Income, group = 3)) + geom_line(color = "dodgerblue3") + theme_bw(base_size = 8) + labs(y = "Average Household Income") + labs(y = "Household Income in Dollars") +  annotate(geom = "text", x = 12, y = 65000, label = "Average Household Income", color = "dodgerblue3")
 ```
-After 2010, the average household income of California migrants start to increase.This is the reported data in that particular year and may not reflect inflation. Therefore, the data must be corrected for inflation.
+After 2009, the average household income of California migrants start to increase.This is the reported data in that particular year and may not reflect inflation. Therefore, the data must be corrected for inflation.
 
 ## Applying Inflation Correction (in 2022 dollars) Part 1
 
-To perform an inflation correction, the average CPI data every year from 1993 to 2020 was obtained from the Federal Reserve Data (FRED, 2023).
+To perform an inflation correction, the average CPI data every year from 1992 to 2020 was obtained from the Federal Reserve Data (FRED, 2023).
 
 To perform an example calculation, the inflation rate in 2020 compared to 2022 dollars by:
 
@@ -362,7 +366,7 @@ ggplot(new_AHIdata, aes(Year, y = Average_Household_Income, group = 4)) + geom_l
 ```
 It can be expected that migrants as a whole -- should be better off than the average family. Moving itself, is an expensive venture, and can only be undertaken by those who can afford it. There is reason to believe that the California Median Household Income provided by the St. Louis Fed, has already been corrected for inflation.
 
-During the latter part of 2010's, the average household income of the California migrants starts to increase rapidly, reaching nearly 160,000 dollars by 2021.
+During the latter part of 2010's, the average household income of the California migrants starts to increase rapidly, reaching nearly 160,000 dollars by 2020.
 
 Note that the average household income of these California migrants dropped in the year 2001 which might signal that they have been significantly affected by the bursting of the Dot-com bubble. Also, note that the median California household's income was not affected as much by the Dot-com crisis. 
 
@@ -387,7 +391,7 @@ ggplot(new_AHIdata, aes(Year, y = Average_Household_Income, group = 4)) + theme_
   annotate(geom = "text", x = 12, y = 115000, label = "Average Household Income in 2022 dollars (California Transplant)", color = "goldenrod3") +  
   labs(y = "Household Income in Dollars")
 ```
-The gap between the Texas median household income and the average household income of the California migrant is roughly double. After 2020, there is a almost a 100,000 income gap between the two groups.
+The gap between the Texas median household income and the average household income of the California migrant is roughly double. In 2020, there is a almost a 100,000 income gap between the two groups.
 
 ## Summary
 
@@ -395,11 +399,14 @@ Californians have been moving to Texas in greater numbers since 2004. At least 5
 
 Between 2-3% of residents of both California and Texas move somewhere else. If investigated further, the SOI data will reveal if this average is true for all states but that it is not within the scope of this report.
 
-The data also shows that the average California transplant is incredibly well-off, earning double the median household income in California and Texas. In 2021, the average California migrant's household income has risen above 150,000 dollars.
+The data also shows that the average California transplant is incredibly well-off, earning double the median household income in California and Texas. In 2020, the average California migrant's household income has risen above 150,000 dollars.
 
 With simple visualizations, some prominent real life events does make a mark in the dataset. How Hurricane Katrina affected the migration between Texas and Louisiana is very apparent in the data. The dip in the household income among California transplants during the year 2000 may indicate that the migrants are somehow connected to the tech industry (or they earn a lot of tech stocks). 
 
-Announced in 2013, Gov. Rick Perry's advertising campaign was coincidentally succeeded by a dip in migration in 2014. Being that the data was collected and reported after taxes have been filed, meaning that there is a actually a dip in migration coinciding with the campaign. However, it is still true that Californians have been steadily moving to Texas their own since 2004.
+Announced in 2013, Gov. Rick Perry's advertising campaign was coincided by a dip in migration in 2013. Being that the data was collected and reported after taxes have been filed, this means that there is a actually a dip in migration during the campaign. However, it is still true that Californians have been steadily moving to Texas their own since 2004.
+
+In all, the influx of high-income California migrants to Texas presents different kinds of problem. They may drive up housing prices and may affect the availability of housing for local Texas residents. They may also increase investments and commerce in the state. To the dismay of the state politicians, these residents may also shape elections. Harris County was once a Republican stronghold, but now leans reliably Democratic (Hobby School of Public Affairs, 2023). In the SOI data, we see migration to Texas picking up in 2004. By the presidential election year of 2008, Harris County has voted for the Democratic candidate since then. These factors, however, are outside the scope of this report.
+
 
 ## References
 
@@ -412,6 +419,8 @@ Federal Reserve Economic Data, St. Louis FED. (2023, November). *Median Househol
 Federal Reserve Economic Data, St. Louis FED. (2023, November). *Median Household Income in Texas*. Economic Research, Federal Reserve Bank of St. Louis. https://fred.stlouisfed.org/series/MEHOINUSTXA646N
 
 Herzog, M., Texas Monthly Staff. (2013, February 5). *Rick Perry to Californians: Come Check Out Texas.* Texas Monthly.  https://www.texasmonthly.com/news-politics/rick-perry-to-californians-come-check-out-texas/
+
+Hobby School of Public Affairs. (2023). *Harris County's Changing Electoral Landscape*. University of Houston. https://uh.edu/hobby/harriscounty/
 
 Internal Revenue Service. (2023, April 27). *SOI Tax Stats - Migration Data.* Tax Statistics. https://www.irs.gov/statistics/soi-tax-stats-migration-data 
 
