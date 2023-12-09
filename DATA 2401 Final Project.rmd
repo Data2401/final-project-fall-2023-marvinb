@@ -27,7 +27,7 @@ The IRS publishes a yearly U. S. Population Migration Data (IRS, 2023). Every ye
 The data normally includes:
 
 - number of returns filed (approximates the number of households)
-- number of personal exemptions claimed (approximates the number of invididuals)
+- number of personal exemptions claimed (approximates the number of individiduals)
 - total adjusted gross income
 
 The data is usually prepared per year, which means it will take a lot of work to combine these data into bigger data sets, if year-to-year changes are to be analyzed.
@@ -36,11 +36,11 @@ Conveniently, user Patrick O'Connor in Kaggle, published a data set containing d
 
 ## Kaggle Data by Patrick O'Connor
 
-Patrick O'Connor's dataset, uploaded in Kaggle, is a collection of IRS Migration Data from 1992 to 2020. The IRS dataset, however, starts in 1990 and also includes the counties from which the migrants moved from and their destination. The IRS dataset is massive but is only collected and reported on a yearly basis. Patrick O'Connor combined these datasets from 1993 to 2020 but removed the county codes. 
+Patrick O'Connor's dataset, uploaded in Kaggle, is a collection of IRS Migration Data from 1992 to 2020. The IRS dataset, however, starts in 1990 and also includes the local counties from which the migrants moved from and their destination. The IRS dataset is massive but is only collected and reported on a yearly basis. Patrick O'Connor combined these datasets from 1993 to 2020 but removed the county codes. 
 
 Note that the IRS only begun including AGI data in 1993. Hence, there will be no AGI figures to be reported before that year (IRS, 2023). It is important to note that the AGI figure in 1993 is the figure earned by the migrant in 1992.
 
-Thus this report will capture the tax filer's residence and income earned during the year they are trying to migrate, as opposed to the year they have successfully completed their move (signaled by the change in address in the next year's tax return).
+Thus, this report will capture the tax filer's residence and income earned during the year they are trying to migrate, as opposed to the year they have successfully completed their move (signaled by the change in address in the next year's tax return).
 
 The O'Connor dataset contains 9 fields, most of whom are state codes and abbreviations. The important fields include:
 
@@ -60,9 +60,9 @@ The O'Connor dataset contains 9 fields, most of whom are state codes and abbrevi
 
 ## Problems /  Objectives
 
-The dataset shows migration patterns year to year, by tracking Y1 and Y2 changes. As a bonus, it also includes the approximated number of households, the approximated number of individuals migrating to any state, and their aprroximated household income.
+The dataset shows migration patterns year to year, by tracking Y1 and Y2 changes. As a bonus, it also includes the approximated number of households, the approximated number of individuals migrating to any state, and their approximated household income.
 
-These are some of the questions this report maybe ready to answer:
+These are some of the questions this report might be ready to answer:
 
 * What is the nature of Texas-California migration that can be gleamed from the data?
 
@@ -114,7 +114,7 @@ The O'Connor Kaggle Data is still arranged year to year, with each state, starti
 
 **FIPS** codes stand for Federal Information Processing System Codes for States and Counties. The number uniquely identify geographic areas, for example, the state-level FIPS code for Texas is 48 (Federal Communications Commission). The O'Connor Dataset retained the state-level FIPS code but excluded the county-level FIPS codes. Hence, this report is currently limited to only analyzing state-level migration.
 
-The **AGI** stands for aggregate gross income, and is reported in the thousands. This means that to obtain the true AGI in dollars, they have to be multiplied by 1000.
+The **AGI** stands for aggregate gross income and is reported in the thousands. This means that to obtain the true AGI in dollars, they must be multiplied by 1000.
 
 Each line in the data includes Y1 (migration year), Y2 (filing year), Y1_State_x (previous state), Y2_State_x (current state), NUM_RETURNS (number of tax returns filed in Y1), AGI (the total income of all the filers in NUM_RETURNS).
 
@@ -205,7 +205,7 @@ sansTEXANS <- sansTEXANS %>% group_by(Y1) %>% mutate(Percent_Migration = (NUM_EX
 ggplot(sansTEXANS, aes(x = Y1, y = Percent_Migration, fill = State)) + geom_col() + scale_y_continuous(labels = scales::percent) + facet_wrap(.~State) + labs(y= "Percent Migrants", x = "Year")
 
 ```
-Note that a significant population of Texans leave for a foreign counties, from 1990s to 2010. Also note that, in 2006, there is a spike in Texans moving to Louisiana.
+Note that a significant population of Texans leave for a "foreign" country, from 1990s to 2010. Also note that, in 2006, there is a spike in Texans moving to Louisiana.
 
 
 ## Non-migrant Population of Texans
@@ -239,7 +239,7 @@ sansCAL <- sansCAL %>% group_by(Y1) %>% mutate(Percent_Migration = (NUM_EXEMPTIO
 
 ggplot(sansCAL, aes(x = Y1, y = Percent_Migration, fill = State)) + geom_col() + scale_y_continuous(labels = scales::percent) + facet_wrap(.~State) + labs(y= "Percent Migrants", x = "Year")
 ```
-Texas features prominently as the top destination for California migrants, with at least 9% migrating annually. Foreign migration is also a feature, but to a lesser degree than Texas.
+Texas features prominently as the top destination for California migrants, with at least 9% migrating annually. Foreign migration is also a feature, but to a lesser degree than Texas. It is important to note that both California and Texas host large military bases like Joint Base San Antonio, Fort Bliss, and Fort Cavazos (Office of the Texas Governor, 2023). As mentioned before, tax filers who file from military bases abroad are considered foreign by the SOI.
 
 ## Non-migrant Population of California
 
@@ -292,7 +292,7 @@ ggplot(LA2006, aes(x = Y1, y= NUM_EXEMPTIONS, fill = State)) + geom_col(fill='ta
 ```
 Hurricane Katrina made landfall in New Orleans, Louisiana on **August 29, 2005** (National Weather Service, 2022). Notice that there was also significant migration out of Texas back to Louisiana starting in 2007.
 
-## Household Income of Californians Migrating To Texas
+## Household Income of Californians Migrating to Texas
 
 Both the IRS and O'Connor's Kaggle Data provide AGI, the aggregate gross income of all transplants expressed in thousands of dollars. If AGI is divided by the number of tax returns filed, we can now obtain the average household income for that particular year.
 
@@ -403,7 +403,7 @@ The data also shows that the average California transplant is incredibly well-of
 
 With simple visualizations, some prominent real life events does make a mark in the dataset. How Hurricane Katrina affected the migration between Texas and Louisiana is very apparent in the data. The dip in the household income among California transplants during the year 2000 may indicate that the migrants are somehow connected to the tech industry (or they earn a lot of tech stocks). 
 
-Announced in 2013, Gov. Rick Perry's advertising campaign was coincided by a dip in migration in 2013. Being that the data was collected and reported after taxes have been filed, this means that there is a actually a dip in migration during the campaign. However, it is still true that Californians have been steadily moving to Texas their own since 2004.
+Announced in 2013, Gov. Rick Perry's advertising campaign was coincided by a dip in migration in 2013. Being that the data was collected and reported after taxes have been filed, this means that there is actually a dip in migration during the campaign. However, it is still true that Californians have been steadily moving to Texas on their own since 2004.
 
 In all, the influx of high-income California migrants to Texas presents different kinds of problem. They may drive up housing prices and may affect the availability of housing for local Texas residents. They may also increase investments and commerce in the state. To the dismay of the state politicians, these residents may also shape elections. Harris County was once a Republican stronghold, but now leans reliably Democratic (Hobby School of Public Affairs, 2023). In the SOI data, we see migration to Texas picking up in 2004. By the presidential election year of 2008, Harris County has voted for the Democratic candidate since then. These factors, however, are outside the scope of this report.
 
@@ -412,7 +412,7 @@ In all, the influx of high-income California migrants to Texas presents differen
 
 Bureau of Labor Statistics. (2023, November). *Average CPI by Quarter and Year*. Social Security Administration. https://www.ssa.gov/oact/STATS/avgcpi.html
 
-Federal Communications Commision. (2023). *States and Counties FIPS codes*. https://transition.fcc.gov/oet/info/maps/census/fips/fips.txt
+Federal Communications Commission. (2023). *States and Counties FIPS codes*. https://transition.fcc.gov/oet/info/maps/census/fips/fips.txt
 
 Federal Reserve Economic Data, St. Louis FED. (2023, November). *Median Household Income in California*. Economic Research, Federal Reserve Bank of St. Louis. https://fred.stlouisfed.org/series/MEHOINUSCAA646N
 
@@ -427,6 +427,9 @@ Internal Revenue Service. (2023, April 27). *SOI Tax Stats - Migration Data.* Ta
 National Weather Service. (2022, September). *Hurricane Katrina - August 2005.* National Oceanic and Atmospheric Administration. https://www.weather.gov/mob/katrina
 
 O'Connor, P. (2023, September). *IRS Migration Data - 1992 to 2020.* kaggle. https://www.kaggle.com/datasets/wumanandpat/irs-migration-data-1992-to-2020
+
+Office of the Texas Governor. (2023) *Active Duty Military Installations.* Texas Military Preparedness Commission. https://gov.texas.gov/organization/military/installations
+
 
 
 
