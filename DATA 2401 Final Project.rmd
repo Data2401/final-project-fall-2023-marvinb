@@ -1,6 +1,6 @@
 ---
-title: "Data Final Project"
-author: "MarvinB"
+title: "Data 2401 Final Project"
+author: "Marvin Bernardino"
 date: "2023-11-06"
 output: html_document
 ---
@@ -10,14 +10,85 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Texas Wide Open
-DATA from https://www.kaggle.com/datasets/wumanandpat/irs-migration-data-1992-to-2020
-by Patrick O'Connor
+Data 2401 Final Project
 
-```{r}
-install.packages("ggforce")
+## Introduction
+
+In 2013, Gov. Rick Perry launched the "Texas Wide Open For Business" campaign. Advertising campaigns were launched in major cities across California to lure them into moving to Texas (Texas Monthly, 2013).
+
+In 2023, some Texans and other national figures are now blaming both California and these new migrants for whatever local problems these migrations may have caused.
+
+Using some publicly available data, we will now try to answer whether these concerns are overblown or not.
+
+## Data
+
+The IRS publishes a yearly U. S. Population Migration Data (IRS, 2023). Every year, as taxes are filed, the IRS takes notes on address changes that tax filers report on their own income tax returns. 
+
+The data normally includes:
+
+- number of returns filed (approximates the number of households)
+- number of personal exemptions claimed (approximates the number of invididuals)
+- total adjusted gross income
+
+The data is usually prepared year to year, which means it will take a lot of work to combine these data into bigger data sets, if year-to-year changes are to be analyzed.
+
+Conveniently, user Patrick O'Connor in Kaggle, published a data set containing data from 1992 to 2020. 
+
+## Kaggle Data by Patrick O'Connor
+
+Patrick O'Connor's dataset, uploaded in Kaggle, is a collection of IRS Migration Data from 1992 to 2020. The IRS dataset, however, starts in 1990 and also includes the counties from which the migrants moved from and their destination. The IRS dataset is massive but is only collected and reported on a yearly basis. Patrick O'Connor combined these datasets from 1992 to 2020 but removed the county codes.
+
+The O'Connor dataset contains 9 fields, most of whom are state codes and abbreviations. The important fields include:
+
+- Y1 (the year when the individual filed their last tax return)
+
+- Y1_STATE_NAME (name of the state where the individual filed their last return)
+
+- Y2 (the year when the individual filed their current tax return)
+
+- Y2_STATE_NAME (name of the state the filer currently reside in)
+
+- NUM_RETURNS (number of tax returns, approximates household)
+
+- NUM_EXEMPTIONS (number of exemptions claimed, approximates number of individuals)
+
+- AGI (adjusted gross income, the AGI represents the total income of all individuals who moved that particular year)
+
+## Problems /  Objectives
+
+The dataset will now show migration patterns year to year, including the number of households and number of individuals migrating to any state, and their household income.
+
+We can now ask:
+
+- How many individuals are migrating to Texas from California?
+
+- What is the household income of these migrants?
+
+- Was Gov. Rick Perry's advertising campaign effective?
+
+- What other information can be gleamed from these data?
+
+## Packages Used
+
+```{r message=FALSE}
 library(tidyverse)
 library(ggplot2)
-library(ggforce)
+
+```
+
+
+## Raw Data
+
+```{r, echo=FALSE, message=FALSE}
+
+irs_SOI_state_migraion_data <- read.csv("irs_SOI_state_migraion_data.csv")
+glimpse(irs_SOI_state_migraion_data)
+```
+
+## Packages Used
+
+```{r}
+
 
 irs_SOI_state_migraion_data <- read.csv("irs_SOI_state_migraion_data.csv")
 
@@ -85,6 +156,7 @@ MHI = c(34900, 34070, 35330, 37010, 38810, 39690, 40930, 43630, 46820, 47260, 47
 
 AHIdata <- cbind(AHIdata, MHI)
 
+
 ggplot(AHIdata, aes(x = Y1, y = Adjusted_in_2022dollars)) + geom_line(aes(y=Adjusted_in_2022dollars)) + geom_line(aes(y=MHI))
 
 #plot of household income data adjusted for inflation (2022 dollars)
@@ -147,3 +219,16 @@ ggplot(TXdata, aes(Y1, NUM_EXEMPTIONS)) + geom_point() + geom_line()
 
 ```
 
+## References
+
+Internal Revenue Service. (2023, April 27). *SOI Tax Stats - Migration Data.* Tax Statistics. https://www.irs.gov/statistics/soi-tax-stats-migration-data 
+
+Herzog, M., Texas Monthly Staff. (2013, February 5). *Rick Perry to Californians: Come Check Out Texas.* Texas Monthly.  https://www.texasmonthly.com/news-politics/rick-perry-to-californians-come-check-out-texas/
+
+O'Connor, P. (2023, September). *IRS Migration Data - 1992 to 2020.* kaggle. https://www.kaggle.com/datasets/wumanandpat/irs-migration-data-1992-to-2020
+
+Bureau of Labor Statistics. (2023, November). *Average CPI by Quarter and Year*. Social Security Administration. https://www.ssa.gov/oact/STATS/avgcpi.html
+
+Federal Reserve Economic Data, St. Louis FED. (2023, November). *Median Household Income in California*. Economic Research, Federal Reserve Bank of St. Louis. https://fred.stlouisfed.org/series/MEHOINUSCAA646N
+
+Federal Reserve Economic Data, St. Louis FED. (2023, November). *Median Household Income in Texas*. Economic Research, Federal Reserve Bank of St. Louis. https://fred.stlouisfed.org/series/MEHOINUSTXA646N
