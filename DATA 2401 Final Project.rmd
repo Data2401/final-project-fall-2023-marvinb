@@ -30,7 +30,7 @@ The data normally includes:
 - number of personal exemptions claimed (approximates the number of invididuals)
 - total adjusted gross income
 
-The data is usually prepared year to year, which means it will take a lot of work to combine these data into bigger data sets, if year-to-year changes are to be analyzed.
+The data is usually prepared per year, which means it will take a lot of work to combine these data into bigger data sets, if year-to-year changes are to be analyzed.
 
 Conveniently, user Patrick O'Connor in Kaggle, published a data set containing data from 1992 to 2020. 
 
@@ -38,7 +38,9 @@ Conveniently, user Patrick O'Connor in Kaggle, published a data set containing d
 
 Patrick O'Connor's dataset, uploaded in Kaggle, is a collection of IRS Migration Data from 1992 to 2020. The IRS dataset, however, starts in 1990 and also includes the counties from which the migrants moved from and their destination. The IRS dataset is massive but is only collected and reported on a yearly basis. Patrick O'Connor combined these datasets from 1993 to 2020 but removed the county codes. 
 
-Note that the IRS only begun including AGI data in 1993. Hence, there will be no AGI figures to be reported before that year (IRS, 2023). Essentially, the data begins in 1993, and the tax filers have now moved and filed their taxes by that year. 
+Note that the IRS only begun including AGI data in 1993. Hence, there will be no AGI figures to be reported before that year (IRS, 2023). Essentially, the data begins in 1993, after the tax filers completed their move.
+
+Patrick O'Connor treats the year before as the start of the migration. However, this report will treat the next year as the starting year, after the tax filers completed the move (signaled by the filing of taxes with the new address).
 
 The O'Connor dataset contains 9 fields, most of whom are state codes and abbreviations. The important fields include:
 
@@ -58,7 +60,7 @@ The O'Connor dataset contains 9 fields, most of whom are state codes and abbrevi
 
 ## Problems /  Objectives
 
-The dataset will now show migration patterns year to year, including the number of households and number of individuals migrating to any state, and their household income.
+The dataset shows migration patterns year to year, by tracking Y1 and Y2 changes. As a bonus, it also includes the approximated number of households, the approximated number of individuals migrating to any state, and their aprroximated household income.
 
 We can now ask:
 
@@ -109,7 +111,7 @@ CATXdata
 ```
 # Graph of California Migration to Texas
 
-```{r}
+```{r echo=FALSE}
 #CATXdata <- CATXdata %>% mutate_at(c('Year'), as.factor)
 options(scipen = 999)
 
@@ -119,9 +121,9 @@ ggplot(CATXdata, aes(Year, Californians)) + geom_point() + geom_line() + geom_vl
 
 ```
 
-At least 40,000 Californians are moving to Texas, yearly. In 2020, more than 100,000 Californians moved to Texas. Note that there is a drop in migration around 2015, but Californians have been migrating steadily in increasing numbers since 2004.
+At least 40,000 Californians are moving to Texas, yearly. In 2021, more than 100,000 Californians have moved to Texas. Note that there is a drop in migration around 2015, but Californians have been migrating steadily in increasing numbers since 2004.
 
-## Texas vs. California Migration Data, 1992 to 2020
+## Texas vs. California Migration Data, 1993 to 2021
 
 ```{r, echo=FALSE}
 knitr::opts_chunk$set(echo = FALSE, out.width = '100%')
@@ -181,7 +183,7 @@ sansTEXANS <- sansTEXANS %>% group_by(Y2) %>% mutate(Percent_Migration = (NUM_EX
 ggplot(sansTEXANS, aes(x = Y2, y = Percent_Migration, fill = State)) + geom_col() + scale_y_continuous(labels = scales::percent) + facet_wrap(.~State) + labs(y= "Percent Migrants", x = "Year")
 
 ```
-Note that a significant population of Texans leave for a foreign counties, from 1990s to 2010
+Note that a significant population of Texans leave for a foreign counties, from 1990s to 2010. Also note that, in 2007, there is a spike in Texans moving to Louisiana.
 
 
 ## Non-migrant Population of Texans
@@ -197,7 +199,8 @@ allTEXANS <- allTEXANS %>% group_by(Y2) %>% mutate(Percent_Migration = (NUM_EXEM
 
 allTEXANS %>% select(Year = Y2, Percent_Migration)
   
-ggplot(allTEXANS, aes(x = Y2, y = Percent_Migration, group = State, fill = State)) + geom_col()  + theme_bw(base_size = 8) + labs(y= "Percent Population", x = "Year") + geom_hline(yintercept = 97, linetype="solid", color = "blue") + annotate(geom = "text", x = 10, y = 97.2, label = "97%", color = "blue")
+ggplot(allTEXANS, aes(x = Y2, y = Percent_Migration, group = State, fill = State)) + geom_col()  + theme_bw(base_size = 8) + labs(y= "Percent Population", x = "Year") + geom_hline(yintercept = 97, linetype="solid", color = "blue") + annotate(geom = "text", x = 10, y = 97.2, label = "97%", color = "blue") +
+  theme_bw(base_size = 7)
 ```
 Between 2-3% of Texans migrate annually for other states.
 
@@ -249,7 +252,7 @@ TXmovers <- TXmovers %>% group_by(Y2) %>% mutate(Percent_Migration = (NUM_EXEMPT
 ggplot(TXmovers, aes(x = Y2, y = Percent_Migration, fill = State)) + geom_col() + scale_y_continuous(labels = scales::percent) + facet_wrap(.~State) + labs(y= "Percent Migrants", x = "Year")
 
 ```
-Notice the jump in Louisiana in the mid-2000's,
+Californians feature prominently in this data. Notice the jump in Louisiana in the mid-2000's,
 
 ## Louisiana Migrants moving to Texas, A Closer Look
 
@@ -265,24 +268,137 @@ ggplot(LA2006, aes(x = Y2, y= NUM_EXEMPTIONS, fill = State)) + geom_col(fill='ta
 
   
 ```
-Hurricane Katrina made landfall in New Orleans, Louisiana on August 29, 2005 (National Weather Service, 2022)
+Hurricane Katrina made landfall in New Orleans, Louisiana on August 29, 2005 (National Weather Service, 2022). Notice that there is also significant migration out of Texas back to Louisiana starting in 2007.
+
+## Household Income of Californians Migrating To Texas
+
+Both the IRS and O'Connor's Kaggle Data provide AGI, the aggregate gross income of all transplants expressed in thousands of dollars. If AGI is divided by the number of tax returns filed, we can now obtain the average household income for that particular year.
+
+Average Household Income = (AGI * 1000 ) / NUM_RETURNS
+
+```{r}
+n1_CATXdata <- CATXdata %>% mutate_at(c('Year'), as.factor)
+
+n1_CATXdata <- n1_CATXdata %>% mutate(Average_Household_Income = (AGI*1000)/(NUM_RETURNS))
+
+ggplot(n1_CATXdata, aes(Year, y = Average_Household_Income, group = 3)) + geom_line(color = "dodgerblue3") + theme_bw(base_size = 8) + labs(y = "Average Household Income") + labs(y = "Household Income in Dollars") +  annotate(geom = "text", x = 12, y = 65000, label = "Average Household Income", color = "dodgerblue3")
+```
+After 2010, the average household income of California migrants start to increase.This is the reported data in that particular year and may not reflect inflation. Therefore, the data must be corrected for inflation.
+
+## Applying Inflation Correction (in 2022 dollars) Part 1
+
+To perform an inflation correction, the average CPI data every year from 1993 to 2020 was obtained from the Federal Reserve Data (FRED, 2023).
+
+To perform an example calculation, the inflation rate in 2020 compared to 2022 dollars by:
+
+2020 Inflation Rate = [(CPI_2022 - CPI_2020 )/ (CPI_2020)] * 100%
+
+2020 Income in 2022 dollars = [2020 Income * (1 + Inflation Rate) ]
+
+This can now be applied to the whole dataset.
+
+```{r}
+CPI = c(138.158, 142.058, 145.642, 149.758, 154.142, 157.558, 159.658, 163.233, 168.892,
+        173.517, 175.875, 179.808, 184.483, 190.975, 197.142, 202.767, 211.053, 209.630, 213.967,
+        221.575, 226.229, 229.324, 232.771, 231.810, 234.076, 239.051, 245.146, 249.222, 252.248)
+
+#from https://www.ssa.gov/oact/STATS/avgcpi.html
+
+new_AHIdata <- n1_CATXdata %>% select(Year, Average_Household_Income)
+
+#add CPI to new_AHIdata
+new_AHIdata <- cbind(new_AHIdata, CPI) 
+
+#inflation rate in 2020 compared to 2022 = 
+# [(CPI for 2022 - CPI for 2020 ) / (CPI for 2020)] x 100%
+
+new_AHIdata <- new_AHIdata %>% mutate(new_AHIdata, inflation2022factor = ((287.984 - CPI)/CPI))
+
+#income in 2020 (compared to 2022 dollars) = 
+#(income in 2020) / (inflation rate in 2020 compared to 2022)
+
+new_AHIdata <- new_AHIdata %>% mutate(Adjusted_in_2022dollars = Average_Household_Income*(1+inflation2022factor))
+
+#head(new_AHIdata)
+
+ggplot(new_AHIdata, aes(Year, y = Average_Household_Income, group = 3)) + geom_line(color = "dodgerblue3") + theme_bw(base_size = 8) + labs(y = "Average Household Income") + geom_line(aes(y=Adjusted_in_2022dollars), color = "goldenrod3") + annotate(geom = "text", x = 8, y = 105000, label = "Average Household Income in 2022 dollars", color = "goldenrod3") + labs(y = "Household Income in Dollars") +  annotate(geom = "text", x = 12, y = 65000, label = "Average Household Income", color = "dodgerblue3")
+```
+Applying inflation correction, the average household income for California migrants to Texas has been somewhat steady, averaging 80,000 dollars until 2009 -- when it starts to increase at a rapid rate.
+
+## Comparing California Median Household Income versus Texas-bound Californians
+
+To further explore the data, the average household income of the California migrant can be compared with the median household income of California. The St. Louis Fed provides the Median Household Income in California in "Current Dollars, Not Seasonally Adjusted," (FRED, 2023). Taking into consideration that the data is in "current dollars"  (2022), it is believed that the data has already been corrected for inflation. 
+
+```{r}
+#Median Household Income (2022 dollars, I believe!) from https://fred.stlouisfed.org/series/MEHOINUSCAA646N
+MHI = c(34900, 34070, 35330, 37010, 38810, 39690, 40930, 43630, 46820, 47260, 47440, 49300, 49220, 51760, 55320, 55730, 57010, 56130, 54280, 53370, 57020, 60790, 60490, 63640, 66640, 70040, 70490, 78110, 77650)
+
+new_AHIdata <- cbind(new_AHIdata, MHI)
+```
+
+
+```{r}
+ggplot(new_AHIdata, aes(Year, y = Average_Household_Income, group = 4)) + geom_line(color = "dodgerblue3", linetype = "longdash") + theme_bw(base_size = 8) + labs(y = "Average Household Income") + geom_line(aes(y=Adjusted_in_2022dollars), color = "goldenrod3") + geom_line(aes(y=MHI), color = "firebrick4") + annotate(geom = "text", x = 20, y = 35000, label = "California Median Household Income in 2022 dollars", color = "firebrick4") +  annotate(geom = "text", x = 8, y = 105000, label = "Average Household Income in 2022 dollars", color = "goldenrod3") +  annotate(geom = "text", x = 12, y = 65000, label = "Average Household Income", color = "dodgerblue3") + labs(y = "Household Income in Dollars")
+
+
+```
+It can be expected that migrants as a whole -- should be better off than the average family. Moving itself, is an expensive venture, and can only be undertaken by those who can afford it. There is reason to believe that the California Median Household Income provided by the St. Louis Fed, has already been corrected for inflation.
+
+During the latter part of 2010's, the average household income of the California migrants starts to increase rapidly, reaching nearly 160,000 dollars by 2021.
+
+Note that the average household income of these California migrants dropped in the year 2001 which might signal that they have been significantly affected by the bursting of the Dot-com bubble. Also, note that the median California household's income was not affected as much by the Dot-com crisis. 
+
+## Texas Median Household Income versus the California migrants
+
+Using the same data from the St. Louis Fed, the average household income of the California migrant to Texas can be compared to the median household income of Texans.
+
+```{r}
+#Texas Median Household Income https://fred.stlouisfed.org/series/MEHOINUSTXA646N
+MHITX = c(27950,28730, 30760, 32040, 33070, 35080, 35780, 38690, 38610,
+          40860, 40150, 39270, 41400, 41420, 43310, 46050, 46490, 47480, 47270,
+          49050, 51930, 51410, 53880, 56470, 58150, 60090, 59790, 67440, 68400)
+
+new_AHIdata <- cbind(new_AHIdata, MHITX)
+```
+
+```{r}
+ggplot(new_AHIdata, aes(Year, y = Average_Household_Income, group = 4)) + theme_bw(base_size = 8) + labs(y = "Average Household Income") + 
+  geom_line(aes(y=Adjusted_in_2022dollars), color = "goldenrod3") + 
+  geom_line(aes(y=MHITX), color = "firebrick4") + 
+  annotate(geom = "text", x = 20, y = 35000, label = "Texas Median Household Income in 2022 dollars", color = "firebrick4") +  
+  annotate(geom = "text", x = 12, y = 115000, label = "Average Household Income in 2022 dollars (California Transplant)", color = "goldenrod3") +  
+  labs(y = "Household Income in Dollars")
+```
+The gap between the Texas median household income and the average household income of the California migrant is roughly double. After 2020, there is a almost a 100,000 income gap between the two groups.
+
+## Summary
+
+Californians have been moving to Texas in greater numbers since 2004. At least 50,000 Californians are moving yearly since then. In 2020, 100,000 Californians have started moving to Texas. These Californians filed their Texas in 2021 as full-fledged Texans.
+
+Between 2-3% of residents of both California and Texas move somewhere else. If investigated further, the SOI data will reveal if this average is true for all states but that it is not within the scope of this report.
+
+The data also shows that the average California transplant is incredibly well-off, earning double the median household income in California and Texas. In 2021, the average California migrant's household income has risen above 150,000 dollars.
+
+Announced in 2013, Gov. Rick Perry's advertising campaign was coincidentally succeeded by a dip in migration in 2014. Being that the data was collected and reported after taxes have been filed, meaning that there is a actually a dip in migration coinciding with the campaign. However, it is still true that Californians have been steadily moving to Texas their own since 2004.
 
 ## References
 
-
-Internal Revenue Service. (2023, April 27). *SOI Tax Stats - Migration Data.* Tax Statistics. https://www.irs.gov/statistics/soi-tax-stats-migration-data 
+Bureau of Labor Statistics. (2023, November). *Average CPI by Quarter and Year*. Social Security Administration. https://www.ssa.gov/oact/STATS/avgcpi.html
 
 Federal Communications Commision. (2023). *States and Counties FIPS codes*. https://transition.fcc.gov/oet/info/maps/census/fips/fips.txt
-
-
-Herzog, M., Texas Monthly Staff. (2013, February 5). *Rick Perry to Californians: Come Check Out Texas.* Texas Monthly.  https://www.texasmonthly.com/news-politics/rick-perry-to-californians-come-check-out-texas/
-
-O'Connor, P. (2023, September). *IRS Migration Data - 1992 to 2020.* kaggle. https://www.kaggle.com/datasets/wumanandpat/irs-migration-data-1992-to-2020
-
-National Weather Service. (2022, September). *Hurricane Katrina - August 2005.* National Oceanic and Atmospheric Administration. https://www.weather.gov/mob/katrina
-
-Bureau of Labor Statistics. (2023, November). *Average CPI by Quarter and Year*. Social Security Administration. https://www.ssa.gov/oact/STATS/avgcpi.html
 
 Federal Reserve Economic Data, St. Louis FED. (2023, November). *Median Household Income in California*. Economic Research, Federal Reserve Bank of St. Louis. https://fred.stlouisfed.org/series/MEHOINUSCAA646N
 
 Federal Reserve Economic Data, St. Louis FED. (2023, November). *Median Household Income in Texas*. Economic Research, Federal Reserve Bank of St. Louis. https://fred.stlouisfed.org/series/MEHOINUSTXA646N
+
+Herzog, M., Texas Monthly Staff. (2013, February 5). *Rick Perry to Californians: Come Check Out Texas.* Texas Monthly.  https://www.texasmonthly.com/news-politics/rick-perry-to-californians-come-check-out-texas/
+
+Internal Revenue Service. (2023, April 27). *SOI Tax Stats - Migration Data.* Tax Statistics. https://www.irs.gov/statistics/soi-tax-stats-migration-data 
+
+National Weather Service. (2022, September). *Hurricane Katrina - August 2005.* National Oceanic and Atmospheric Administration. https://www.weather.gov/mob/katrina
+
+O'Connor, P. (2023, September). *IRS Migration Data - 1992 to 2020.* kaggle. https://www.kaggle.com/datasets/wumanandpat/irs-migration-data-1992-to-2020
+
+
+
+
