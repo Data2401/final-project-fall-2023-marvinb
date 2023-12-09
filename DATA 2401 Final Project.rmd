@@ -44,33 +44,51 @@ Patrick O'Connor treats the year before as the start of the migration. However, 
 
 The O'Connor dataset contains 9 fields, most of whom are state codes and abbreviations. The important fields include:
 
-- Y1 (the year when the individual filed their last tax return)
+- **Y1** (the year when the individual filed their last tax return)
 
-- Y1_STATE_NAME (name of the state where the individual filed their last return)
+- **Y1_STATE_NAME** (name of the state where the individual filed their last return)
 
-- Y2 (the year when the individual filed their current tax return)
+- **Y2** (the year when the individual filed their current tax return)
 
-- Y2_STATE_NAME (name of the state the filer currently reside in)
+- **Y2_STATE_NAME** (name of the state the filer currently reside in)
 
-- NUM_RETURNS (number of tax returns, approximates household)
+- **NUM_RETURNS** (number of tax returns, approximates household)
 
-- NUM_EXEMPTIONS (number of exemptions claimed, approximates number of individuals)
+- **NUM_EXEMPTIONS** (number of exemptions claimed, approximates number of individuals)
 
-- AGI (adjusted gross income, the AGI represents the total income of all individuals who moved that particular year)
+- **AGI** (adjusted gross income, the AGI represents the total income of all individuals who moved that particular year)
 
 ## Problems /  Objectives
 
 The dataset shows migration patterns year to year, by tracking Y1 and Y2 changes. As a bonus, it also includes the approximated number of households, the approximated number of individuals migrating to any state, and their aprroximated household income.
 
-We can now ask:
+These are some of the questions this report maybe ready to answer:
 
-- How many individuals are migrating to Texas from California?
+* What is the nature of Texas-California migration that can be gleamed from the data?
 
-- What is the household income of these migrants?
+  + How many individuals are migrating to Texas from California?
 
-- Was Gov. Rick Perry's advertising campaign effective?
+  + Is Texas the number one destination for California migrants?
 
-- What other information can be gleamed from these data?
+  + What is the net migration between Texas and California?
+
+  + Do Californians make up the majority of those moving to Texas?
+  
+  + Are the residents of either state more likely to move to than the other?
+
+* From which states are the majority of those moving to Texas?
+
+* Using the AGI data, what other information can be gleamed from the migration data?
+  
+  + What is the household income of these migrants?
+  
+  + Does the migrant population differ from the population that stayed?
+  
+  + Does the migrant population differ from the residents of the state they are moving to?
+
+* Was Gov. Rick Perry's advertising campaign effective?
+
+* What other information can be gleamed from these data?
 
 ## Packages Used
 
@@ -88,17 +106,17 @@ irs_SOI_state_migraion_data <- read.csv("irs_SOI_state_migraion_data.csv")
 glimpse(irs_SOI_state_migraion_data)
 ```
 
-The O'Connor Kaggle Data is still arranged year to year, with each state, starting at Y1_STATE..., with an accompanying Y2_STATE.... Note that Y1_STATE and Y2_STATE can be equal, which means that these are the tax filers who did not move to another state. 
+The O'Connor Kaggle Data is still arranged year to year, with each state, starting at **Y1_STATE...**, with an accompanying **Y2_STATE....** Note that **Y1_STATE** and **Y2_STATE** can be equal, which means that these are the tax filers who did not move to another state. 
 
-FIPS codes stand for Federal Information Processing System Codes for States and Counties. The number uniquely identify geographic areas, for example, the state-level FIPS code for Texas is 48 (Federal Communications Commission). The O'Connor Dataset retained the state-level FIPS code but excluded the county-level FIPS codes. Hence, this report is currently limited to only analyzing state-level migration.
+**FIPS** codes stand for Federal Information Processing System Codes for States and Counties. The number uniquely identify geographic areas, for example, the state-level FIPS code for Texas is 48 (Federal Communications Commission). The O'Connor Dataset retained the state-level FIPS code but excluded the county-level FIPS codes. Hence, this report is currently limited to only analyzing state-level migration.
 
-The AGI stands for aggregate gross income, and is reported in the thousands. This means that to obtain the true AGI in dollars, they have to be multiplied by 1000.
+The **AGI** stands for aggregate gross income, and is reported in the thousands. This means that to obtain the true AGI in dollars, they have to be multiplied by 1000.
 
 Each line in the data includes Y1 (previous year), Y2 (current year), Y1_State_x (previous state), Y2_State_x (current state), NUM_RETURNS (number of tax returns filed in Y2), AGI (the total income of all the filers in NUM_RETURNS).
 
 ## California to Texas Migration Data, 1993 to 2020
 
-To obtain migration data from California to Texas, we use Y1_STATE_ABBR = "CA" and Y2_STATE_ABBR == "TX"
+To obtain migration data from California to Texas, we use Y1_STATE_ABBR = "CA" and Y2_STATE_ABBR == "TX" to filter the data.
 
 
 ```{r, echo=FALSE}
@@ -252,7 +270,7 @@ TXmovers <- TXmovers %>% group_by(Y2) %>% mutate(Percent_Migration = (NUM_EXEMPT
 ggplot(TXmovers, aes(x = Y2, y = Percent_Migration, fill = State)) + geom_col() + scale_y_continuous(labels = scales::percent) + facet_wrap(.~State) + labs(y= "Percent Migrants", x = "Year")
 
 ```
-Californians feature prominently in this data. Notice the jump in Louisiana in the mid-2000's,
+Californians feature prominently in this data. However, notice the jump in Louisiana in the mid-2000's,
 
 ## Louisiana Migrants moving to Texas, A Closer Look
 
@@ -268,7 +286,7 @@ ggplot(LA2006, aes(x = Y2, y= NUM_EXEMPTIONS, fill = State)) + geom_col(fill='ta
 
   
 ```
-Hurricane Katrina made landfall in New Orleans, Louisiana on August 29, 2005 (National Weather Service, 2022). Notice that there is also significant migration out of Texas back to Louisiana starting in 2007.
+Hurricane Katrina made landfall in New Orleans, Louisiana on August 29, 2005 (National Weather Service, 2022). Notice that there was also significant migration out of Texas back to Louisiana starting in 2007.
 
 ## Household Income of Californians Migrating To Texas
 
@@ -378,6 +396,8 @@ Californians have been moving to Texas in greater numbers since 2004. At least 5
 Between 2-3% of residents of both California and Texas move somewhere else. If investigated further, the SOI data will reveal if this average is true for all states but that it is not within the scope of this report.
 
 The data also shows that the average California transplant is incredibly well-off, earning double the median household income in California and Texas. In 2021, the average California migrant's household income has risen above 150,000 dollars.
+
+With simple visualizations, some prominent real life events does make a mark in the dataset. How Hurricane Katrina affected the migration between Texas and Louisiana is very apparent in the data. The dip in the household income among California transplants during the year 2000 may indicate that the migrants are somehow connected to the tech industry (or they earn a lot of tech stocks). 
 
 Announced in 2013, Gov. Rick Perry's advertising campaign was coincidentally succeeded by a dip in migration in 2014. Being that the data was collected and reported after taxes have been filed, meaning that there is a actually a dip in migration coinciding with the campaign. However, it is still true that Californians have been steadily moving to Texas their own since 2004.
 
